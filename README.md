@@ -1,3 +1,4 @@
+<!-- vim: set spelllang=de noexpandtab: -->
 # Das Problem mit `assert()`
 
 In diesem Blog halte ich meine Gedanken zu Programmiersprachen fest.
@@ -92,6 +93,9 @@ zusätzlich einzubauen. Ich habe `strlen.cpp` entsprechend angepasst:
 }
 ```
 
+
+## Eine Exception werfen
+
 Das Verhalten ist besser, aber noch nicht gut. Zumindest passiert jetzt nichts
 Schlimmes, wenn wir die Funktion mit `nullptr` aufrufen. Aber es wird auch
 kein Fehler zurückgeliefert. Ich kann natürlich argumentieren, dass `0` die
@@ -99,4 +103,20 @@ perfekt richtige Antwort für den Aufruf mit `nullptr` ist. Aber dann
 bräuchte ich den `assert` gar nicht.
 
 Ich will mit dem `assert` ja gerade ausdrücken, dass es ein Fehler ist, die
-Funktion mit `nullptr` aufzurufen. 
+Funktion mit `nullptr` aufzurufen. Vielleicht ist eine Exception für diesen
+Fehlerfall besser geeignet. Ich habe `strlen.cpp` wie folgt angepasst:
+
+```c++
+// ...
+#include <cstddef>
+#include <stdexcept>
+// ...
+[[nodiscard]] size_t strlen(const char* str) {
+	assert(str);
+	if (! str) { throw std::invalid_argument { "must not be nullptr" }; }
+	#if false
+	if (! str) { return 0; }
+	#endif
+	// ...
+}
+```
