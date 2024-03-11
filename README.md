@@ -114,9 +114,165 @@ Fehlerfall besser geeignet. Ich habe `strlen.cpp` wie folgt angepasst:
 [[nodiscard]] size_t strlen(const char* str) {
 	assert(str);
 	if (! str) { throw std::invalid_argument { "must not be nullptr" }; }
-	#if false
+	#if 0
 	if (! str) { return 0; }
 	#endif
 	// ...
 }
 ```
+
+Das `#if 0` ist ein Workaround für mein Program
+[`md-patcher`](https://github.com/itmm/md-patcher). Es extrahiert den
+Source-Code aus Markdown-Dokumenten und setzt ihn zusammen. Momentan gibt
+es keine Möglichkeit, bestehende Zeilen zu löschen. Wenn Sie jedoch mit
+einem `#if 0` eingeklammert werden, werden Sie nicht mehr generiert. Der
+resultierende Code ist sauber. Im Markdown sieht es jedoch nicht so toll
+aus.
+
+Im nächsten Schritt, packe ich das Werfen der Exception in eine eigene
+Funktion, die dann `assert` ersetzen kann. Hier ist dazu der Header
+`require.h`:
+
+```c++
+#pragma once
+
+#include <exception>
+#include <string>
+
+class Require_Error: public std::exception {
+	public:
+		Require_Error(const std::string& what): what_ { what } { }
+		const char* what() const noexcept override {
+			return what_.c_str();
+		}
+
+	private:
+		std::string what_;
+	
+};
+
+#define require(...) do { if (!(__VA_ARGS__)) { \
+	require_failed(__FILE__, __LINE__, #__VA_ARGS__) } } while (false)
+
+#define require_failed(FILE, LINE, EXPR) require_failed_2(FILE, LINE, EXPR)
+
+#define require_failed_2(FILE, LINE, EXPR) \
+	std::string what { FILE ":" }; \
+	what += #LINE; \
+	what += " assertion failed: "; \
+	what += EXPR; \
+	throw Require_Error { what };
+```
+
+Damit kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
+
+```c++
+#if 0
+#include <cassert>
+#endif
+#include <cstddef>
+#if 0
+#include <stdexcept>
+#endif
+
+#include "require.h"
+
+[[nodiscard]] size_t strlen(const char* str) {
+	#if 0
+	assert(str);
+	if (! str) { throw std::invalid_argument { "must not be nullptr" }; }
+	// ...
+	#endif
+	require(str);
+	// ...
+}
+```
+
+Die gleiche Anpassung gilt für `t_strlen.cpp`:
+
+```c++
+#if 0
+#include <cassert>
+#endif
+
+#include "require.h"
+#include "strlen.h"
+
+int main() {
+	#if 0
+	assert(strlen("") == 0);
+	assert(strlen("abc") == 3);
+	assert(strlen("a\0b") == 1);
+	#endif
+	require(strlen("") == 0);
+	require(strlen("abc") == 3);
+	require(strlen("a\0b") == 2);
+}
+```
+
+Mit dem registrieren eines globalen Handlers kann ich die Ausgabe noch ein
+wenig verbessern. Dazu greife ich in `require.h` auf eine globale Variable
+zu (um sie auch sicher zu verwenden):
+
+```c++
+// ...
+#include <string>
+
+class Global_Require_Handler {
+	public:
+		Global_Require_Handler();
+		const std::string& operator()(const std::string& what) {
+			return what;
+		}
+};
+
+class Require_Error: public std::exception {
+	public:
+		#if 0
+		Require_Error(const std::string& what): what_ { what } { }
+		#endif
+		Require_Error(const std::string& what):
+			what_ { handler_(what) } { }
+		// ...
+
+	private:
+		std::string what_;
+		static Global_Require_Handler handler_;
+	
+};
+// ...
+```
+
+In der Datei `require.cpp` initialisiere ich den Handler und registriere
+dabei einen Exception-Handler:
+
+```c++
+#include <iostream>
+
+#include "require.h"
+
+Global_Require_Handler::Global_Require_Handler() {
+	std::set_terminate([]() -> void {
+		try {
+			std::rethrow_exception(std::current_exception());
+		}
+		catch (const Require_Error& err) {
+			std::cerr << err.what() << "\n";
+			std::exit(EXIT_FAILURE);
+		}
+	});
+}
+
+Global_Require_Handler Require_Error::handler_ { };
+```
+
+Damit habe ich ganz ohne irgendwelche Änderungen am Haupt-Programm eine
+minimale Ausgabe produziert. Und das sowohl in der Debug- als auch der
+Release-Version.
+
+Wäre schon ganz gut, wenn es nicht noch eine weitere Verbesserung gäbe ...
+
+
+## Bessere Typen
+
+
