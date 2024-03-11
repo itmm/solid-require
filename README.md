@@ -206,7 +206,7 @@ int main() {
 	#endif
 	require(strlen("") == 0);
 	require(strlen("abc") == 3);
-	require(strlen("a\0b") == 2);
+	require(strlen("a\0b") == 1);
 }
 ```
 

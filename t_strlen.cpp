@@ -9,6 +9,6 @@ int main() {
 #line 207
 	require(strlen("") == 0);
 	require(strlen("abc") == 3);
-	require(strlen("a\0b") == 2);
+	require(strlen("a\0b") == 1);
 #line 47
 }
