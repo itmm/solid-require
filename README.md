@@ -136,19 +136,12 @@ Funktion, die dann `assert` ersetzen kann. Hier ist dazu der Header
 ```c++
 #pragma once
 
-#include <exception>
-#include <string>
+#include <stdexcept>
 
-class Require_Error: public std::exception {
+class Require_Error: public std::logic_error {
 	public:
-		Require_Error(const std::string& what): what_ { what } { }
-		const char* what() const noexcept override {
-			return what_.c_str();
-		}
-
-	private:
-		std::string what_;
-	
+		Require_Error(const std::string& what): 
+			std::logic_error { what } { }
 };
 
 #define require(...) do { if (!(__VA_ARGS__)) { \
@@ -216,7 +209,7 @@ zu (um sie auch sicher zu verwenden):
 
 ```c++
 // ...
-#include <string>
+#include <stdexcept>
 
 class Global_Require_Handler {
 	public:
@@ -226,19 +219,15 @@ class Global_Require_Handler {
 		}
 };
 
-class Require_Error: public std::exception {
+class Require_Error: public std::logic_error {
 	public:
-		#if 0
-		Require_Error(const std::string& what): what_ { what } { }
-		#endif
-		Require_Error(const std::string& what):
-			what_ { handler_(what) } { }
-		// ...
-
+		Require_Error(const std::string& what): 
+			#if 0
+			std::logic_error { what } { }
+			#endif
+			std::logic_error { handler_(what) } { }
 	private:
-		std::string what_;
 		static Global_Require_Handler handler_;
-	
 };
 // ...
 ```

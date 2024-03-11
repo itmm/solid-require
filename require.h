@@ -1,10 +1,9 @@
 #line 137 "README.md"
 #pragma once
 
-#include <exception>
-#include <string>
+#include <stdexcept>
 
-#line 221
+#line 214
 class Global_Require_Handler {
 	public:
 		Global_Require_Handler();
@@ -13,23 +12,15 @@ class Global_Require_Handler {
 		}
 };
 
-#line 142
-class Require_Error: public std::exception {
+#line 141
+class Require_Error: public std::logic_error {
 	public:
-#line 234
-		Require_Error(const std::string& what):
-			what_ { handler_(what) } { }
-#line 145
-		const char* what() const noexcept override {
-			return what_.c_str();
-		}
-
+		Require_Error(const std::string& what): 
+#line 228
+			std::logic_error { handler_(what) } { }
 	private:
-		std::string what_;
-#line 240
 		static Global_Require_Handler handler_;
-#line 151
-	
+#line 145
 };
 
 #define require(...) do { if (!(__VA_ARGS__)) { \
