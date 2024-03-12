@@ -34,6 +34,8 @@ einer Zeichenfolge. Hier zuerst die Implementierung in der Datei `strlen.cpp`:
 }
 ```
 
+Mein Dank an Sebastian, für die Optimierung dieser Funktion. Ich hatte sie
+zuerst mit einem Zähler ohne Zeiger-Arithmetik implementiert.
 Ein kleines Test-Programm `t_strlen.cpp` dafür sieht so aus:
 
 ```c++

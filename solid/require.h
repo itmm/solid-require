@@ -1,10 +1,10 @@
-#line 148 "README.md"
+#line 150 "README.md"
 #pragma once
 
 #include <stdexcept>
 
 namespace solid::require {
-#line 247
+#line 249
 	class Global_Handler {
 		public:
 			Global_Handler();
@@ -15,15 +15,15 @@ namespace solid::require {
 			}
 	};
 
-#line 153
+#line 155
 	class Error: public std::logic_error {
 		public:
 			Error(const std::string& what): 
-#line 263
+#line 265
 				std::logic_error { handler_(what) } { }
 		private:
 			static Global_Handler handler_;
-#line 157
+#line 159
 	};
 }
 
