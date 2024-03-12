@@ -338,6 +338,5 @@ int main() {
 	require(strlen(C_Str { "" }) == 0);
 	require(strlen(C_Str { "abc" }) == 3);
 	require(strlen(C_Str { "a\0b" }) == 1);
-#line 47
 }
 ```
