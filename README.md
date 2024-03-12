@@ -66,10 +66,10 @@ Aufgaben:
 1. Ich prüfe in der Funktion `strlen`, ob der übergebene Zeiger `nullptr`
    ist und
 
-2. Ich verwende in `t_strlen.cpp` für einfache Unit-Tests.
+2. Ich verwende in es `t_strlen.cpp` für einfache Unit-Tests.
 
 Beide Anwendungen habe ich in der freien Wildbahn oft gesehen. Es handelt
-sich also nicht um ein konstruiertes Problem.
+sich nicht um ein konstruiertes Problem!
 
 Gerade der erste Fall macht jedoch richtig Probleme: Was passiert, wenn ich
 eine Release-Version baue? In diesem Fall wird das `assert` einfach
@@ -135,16 +135,15 @@ Fehlerfall besser geeignet. Ich habe `strlen.cpp` wie folgt angepasst:
 ```
 
 Das `#if 0` ist ein Workaround für mein Program
-[`md-patcher`](https://github.com/itmm/md-patcher). Es extrahiert den
-Source-Code aus Markdown-Dokumenten und setzt ihn zusammen. Momentan gibt
+[`md-patcher`](https://github.com/itmm/md-patcher).  Momentan gibt
 es keine Möglichkeit, bestehende Zeilen zu löschen. Wenn Sie jedoch mit
 einem `#if 0` eingeklammert werden, werden Sie nicht mehr generiert. Der
 resultierende Code ist sauber. Im Markdown sieht es jedoch nicht so toll
-aus.
+aus. Und man muss bei der weiteren Verwendung der Datei im Hinterkopf behalten,
+dass es diese Kommentare immer noch gibt! Sie müssen ggf. übersprungen werden.
 
-Im nächsten Schritt, packe ich das Werfen der Exception in eine eigene
-Funktion, die dann `assert` ersetzen kann. Hier ist dazu der Header
-`solid/require.h`:
+Im nächsten Schritt, packe ich das Werfen der Exception in ein Makro, das dann
+`assert` ersetzen kann. Hier ist dazu der Header `solid/require.h`:
 
 ```c++
 #pragma once
@@ -172,7 +171,17 @@ namespace solid::require {
 	throw solid::require::Error { what };
 ```
 
-Damit kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
+Meinen stabilen Code-Fragmenten habe ich den Namensraum `solid` spendiert. Da
+es neben der Exception bald noch eine weitere Klasse gibt, habe ich diesem
+Artikel einen eigenen Sub-Namensraum `solid::require` spendiert.
+
+Das Zusammensetzen der Nachricht vollführe ich in mehreren Schritten. Die Idee
+dahinter ist, dass es vermutlich mehrere `require`-Aufrufe in einer Datei
+gibt. Daher habe ich die Zeichenketten, die vermutlich mehrfach vorkommen,
+nicht zusammengesetzt. Dadurch spare ich Konstanten-Platz, wenn es auch etwas
+mehr Code bedeutet.
+
+Mit dem Makro kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
 
 ```c++
 #if 0 // don't use assert
@@ -195,13 +204,13 @@ Damit kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
 }
 ```
 
-Die gleiche Anpassung gilt für `t_strlen.cpp`:
+Eine ähnliche Anpassung habe ich in `t_strlen.cpp` durchgeführt:
 
 ```c++
 #if 0
 #include <cassert>
-#endif
 
+#endif
 #include "solid/require.h"
 #include "strlen.h"
 
@@ -217,8 +226,8 @@ int main() {
 }
 ```
 
-Zusätzlich kann ich Fehlschläge explizit testen. Ich muss nur die Exception
-abfangen:
+Zusätzlich kann ich nun Fehlschläge explizit testen. Ein Aufruf von `assert`
+ist mir immer um die Ohren geflogen. Aber die Exception kann ich abfangen:
 
 ```c++
 // ...
@@ -228,9 +237,7 @@ void test_null_strlen() {
 	bool got_exception { false };
 	try {
 		std::ignore = strlen(nullptr);
-	} catch (const solid::require::Error&) {
-		got_exception = true;
-	}
+	} catch (const solid::require::Error&) { got_exception = true; }
 	require(got_exception);
 }
 // ...
@@ -241,7 +248,8 @@ void test_null_strlen() {
 
 Mit dem registrieren eines globalen Handlers kann ich die Ausgabe noch ein
 wenig verbessern. Dazu greife ich in `solid/require.h` auf eine globale
-Variable zu (um sie auch sicher zu verwenden):
+Variable zu. Damit stelle ich sicher, dass der Konstruktor der globalen
+Variable rechtzeitig aufgerufen wird:
 
 ```c++
 // ...
@@ -251,9 +259,7 @@ namespace solid::require {
 			Global_Handler();
 			const std::string& operator()(
 				const std::string& what
-			) {
-				return what;
-			}
+			) { return what; }
 	};
 
 	class Error: public std::logic_error {
@@ -270,8 +276,8 @@ namespace solid::require {
 // ...
 ```
 
-In der Datei `solid/require.cpp` initialisiere ich den Handler und registriere
-dabei einen Exception-Handler:
+In der Datei `solid/require.cpp` registriere ich im Konstruktor des Handlers
+einen Exception-Handler:
 
 ```c++
 #include <iostream>
@@ -299,7 +305,10 @@ Damit habe ich ganz ohne irgendwelche Änderungen am Haupt-Programm eine
 minimale Ausgabe produziert. Und das sowohl in der Debug- als auch der
 Release-Version.
 
-Wäre schon ganz gut, wenn es nicht noch eine weitere Verbesserung gäbe ...
+Die Ausgabe habe ich so gewählt, dass Editoren die Zeile als Fehlermeldung
+parsen können und direkt in die richtige Zeile springen können.
+
+Wäre schon ganz gut, wenn es nicht noch eine weitere Verbesserung gäbe …
 
 
 ## Bessere Typen
@@ -357,7 +366,7 @@ class String_Literal {
 };
 ```
 
-Der Header `strlen.h` muss ebenfalls korrigiert werden:
+Der Header `strlen.h` muss ebenfalls an die neue Signatur angepasst werden:
 
 ```c++
 // ...
@@ -383,7 +392,6 @@ void test_null_strlen() {
 	#endif // don't use raw pointer
 		std::ignore = strlen(String_Literal { nullptr });
 	// ...
-	require(got_exception);
 }
 // ...
 int main() {
@@ -397,3 +405,11 @@ int main() {
 	test_null_strlen();
 }
 ```
+
+Meine Herleitung von `solid/require.h` ist dadurch jedoch nicht nutzlos
+geworden. Ich verwende immer noch `require`, aber jetzt an einer anderen
+Stelle: bei der Erzeugung der `String_Literal`-Instanzen.
+
+Dadurch wurde der Test außerhalb der eigentlichen Funktion gezogen. In der
+Funktion benötige ich keinen Code zum Testen der Parameter mehr. Ich kann mich
+ganz auf die Umsetzung der eigentlichen Funktion konzentrieren.
