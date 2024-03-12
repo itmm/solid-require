@@ -28,7 +28,7 @@ einer Zeichenfolge. Hier zuerst die Implementierung in der Datei `strlen.cpp`:
 [[nodiscard]] size_t strlen(const char* str) {
 	assert(str);
 	size_t count { 0 };
-	while (*str++) { ++count; }
+	for (; *str; ++str, ++count) { }
 	return count;
 }
 ```
@@ -54,7 +54,7 @@ Damit der Test baut, brauche ich noch den Header `strlen.h`:
 
 #include <cstddef>
 
-[[nodiscard]] size_t strlen(const char* a);
+[[nodiscard]] size_t strlen(const char* str);
 ```
 
 In diesem Progrämmchen benutze ich `assert` für zwei unterschiedliche
@@ -114,9 +114,9 @@ Fehlerfall besser geeignet. Ich habe `strlen.cpp` wie folgt angepasst:
 [[nodiscard]] size_t strlen(const char* str) {
 	assert(str);
 	if (! str) { throw std::invalid_argument { "must not be nullptr" }; }
-	#if 0
+	#if 0 // don't return default value
 	if (! str) { return 0; }
-	#endif
+	#endif // don't return default value
 	// ...
 }
 ```
@@ -160,22 +160,23 @@ class Require_Error: public std::logic_error {
 Damit kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
 
 ```c++
-#if 0
+#if 0 // don't use assert
 #include <cassert>
-#endif
+#endif // don't use assert
 #include <cstddef>
-#if 0
+#if 0 // don't throw exception
 #include <stdexcept>
-#endif
+#endif // don't throw exception
 
 #include "require.h"
 
 [[nodiscard]] size_t strlen(const char* str) {
-	#if 0
+	#if 0 // don't use assert and exception
 	assert(str);
 	if (! str) { throw std::invalid_argument { "must not be nullptr" }; }
 	// ...
-	#endif
+	#endif // don't return default value
+	#endif // don't use assert and exception
 	require(str);
 	// ...
 }
@@ -192,11 +193,11 @@ Die gleiche Anpassung gilt für `t_strlen.cpp`:
 #include "strlen.h"
 
 int main() {
-	#if 0
+	#if 0 // use require instead of assert
 	assert(strlen("") == 0);
 	assert(strlen("abc") == 3);
 	assert(strlen("a\0b") == 1);
-	#endif
+	#endif // use require instead of assert
 	require(strlen("") == 0);
 	require(strlen("abc") == 3);
 	require(strlen("a\0b") == 1);
@@ -222,9 +223,9 @@ class Global_Require_Handler {
 class Require_Error: public std::logic_error {
 	public:
 		Require_Error(const std::string& what): 
-			#if 0
+			#if 0 // don't initialize without handler
 			std::logic_error { what } { }
-			#endif
+			#endif // don't initialize without handler
 			std::logic_error { handler_(what) } { }
 	private:
 		static Global_Require_Handler handler_;
@@ -264,4 +265,79 @@ Wäre schon ganz gut, wenn es nicht noch eine weitere Verbesserung gäbe ...
 
 ## Bessere Typen
 
+Ich sehe die Schwäche der Implementierung von `strlen` im Parameter-Typ.
+Wenn ich bereits dem Compiler sage, dass der Parameter nicht `nullptr` sein
+darf, kann ich den Test zur Laufzeit an dieser Stelle vermeiden. Die
+Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
 
+```c++
+// ...
+
+#if 0 // don't use require
+#include "require.h"
+#endif // don't use require
+#include "c-str.h"
+
+#if 0 // don't use raw c string
+[[nodiscard]] size_t strlen(const char* str) {
+#endif // don't use raw c string
+[[nodiscard]] size_t strlen(C_Str str) {
+	#if 0 // don't use require
+	// ...
+	require(str);
+	#endif // don't use require
+	// ...
+}
+```
+
+Ich habe den neuen Typ in `c-str.h` so definiert:
+
+```c++
+#pragma once
+
+#include "require.h"
+
+class C_Str {
+	public:
+		explicit C_Str(const char* str = ""): str_ { str } {
+			require(str);
+		}
+
+		char operator*() const { return *str_; }
+		C_Str& operator++() {
+			require(*str_); ++str_; return *this;
+		}
+	private:
+		const char* str_;
+};
+```
+
+Der Header `strlen.h` muss ebenfalls korrigiert werden:
+
+```c++
+// ...
+#include <cstddef>
+
+#include "c-str.h"
+
+#if 0 // don't use raw string
+[[nodiscard]] size_t strlen(const char* str);
+#endif // don't use raw string
+[[nodiscard]] size_t strlen(C_Str str);
+```
+
+Natürlich müssen auch die Tests in `t_strlen.cpp` angepasst werden:
+
+```c++
+// ...
+int main() {
+	#if 0 // don't use raw strings
+	// ...
+	require(strlen("a\0b") == 1);
+	#endif // don't use raw strings
+	require(strlen(C_Str { "" }) == 0);
+	require(strlen(C_Str { "abc" }) == 3);
+	require(strlen(C_Str { "a\0b" }) == 1);
+#line 47
+}
+```

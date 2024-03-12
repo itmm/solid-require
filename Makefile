@@ -12,12 +12,10 @@ test:
 	./$(APP)
 
 mdp.run:  README.md
-	mdp $^
-	date >$@
-	$(MAKE) $(APP)
+	mdp $^ && date >$@ && $(MAKE) $(APP)
 
 t_strlen: $(SOURCES) $(HEADER)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $@
 
 clean:
-	rm -f $(APP) $(MDP_RUN)
+	rm -f $(APP) $(MDP_RUN) $(SOURCES) $(HEADER)

@@ -3,4 +3,8 @@
 
 #include <cstddef>
 
-[[nodiscard]] size_t strlen(const char* a);
+#line 321
+#include "c-str.h"
+
+#line 326
+[[nodiscard]] size_t strlen(C_Str str);
