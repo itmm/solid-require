@@ -1,19 +1,21 @@
 <!-- vim: set spelllang=de noexpandtab: -->
 # Das Problem mit `assert()`
 
-In diesem Blog halte ich meine Gedanken zu Programmiersprachen fest.
-Hauptsächlich werden das erstmal C++ und Oberon sein. Mit diesen Sprachen
-befasse ich mich im Augenblick am intensivsten. Das Ziel ist es, kleine
-Handreichungen zu geben, um stabilere und bessere Programme zu entwickeln.
-Die Sprachen sind riesig und gerade C++ hat einen sehr starken Fokus auf
-Geschwindigkeit. Dafür werden oft Sicherheit und Stabilität geopfert. Auf
-einer schwankenden Plattform kann aber nur sehr schwierig etwas Stabiles
-errichtet werden.
+Auf [www.knp.de](https://www.knp.de) halte ich meine Gedanken zu
+Programmiersprachen fest. Hauptsächlich werden das erstmal C++ und Oberon
+sein. Mit diesen Sprachen befasse ich mich im Augenblick am intensivsten.
+Das Ziel ist es, kleine Handreichungen zu geben, um stabilere und bessere
+Programme zu entwickeln. Gerade C++ ist eine riesige Sprache und hat einen
+sehr starken Fokus auf Geschwindigkeit. Dafür werden oft Sicherheit und
+Stabilität geopfert. Auf einer schwankenden Plattform kann aber nur sehr
+schwierig etwas Stabiles errichtet werden.
 
 Daher ist der Sinn dieser Beiträge, das Fundament zu festigen. Damit können 
 wir leichter gute Programme schreiben. Wenn sie dann etwas langsamer Laufen,
 ist das ein geringer Preis für die resultierende Qualitätssteigerung.
 
+Wenn ihr Fehler und Verbesserungen findet, eröffnet bitte Issues auf GitHub
+oder sendet mir Pull-Requests.
 
 ## Wann sollte ich `assert()` verwenden
 

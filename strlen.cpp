@@ -1,14 +1,14 @@
-#line 326 "README.md"
+#line 328 "README.md"
 #include "string-literal.h"
-#line 27
+#line 29
 #include "strlen.h"
 
-#line 332
+#line 334
 [[nodiscard]] size_t strlen(const String_Literal& str) {
-#line 31
+#line 33
 	auto cur { str };
 	for (; *cur; ++cur) { }
-#line 342
+#line 344
 	return cur.ptr() - str.ptr();
-#line 34
+#line 36
 }
