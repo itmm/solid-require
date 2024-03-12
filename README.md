@@ -204,6 +204,28 @@ int main() {
 }
 ```
 
+Zusätzlich kann ich Fehlschläge explizit testen. Ich muss nur die Exception
+abfangen:
+
+```c++
+// ...
+#include "strlen.h"
+
+void test_null_strlen() {
+	bool got_exception { false };
+	try {
+		std::ignore = strlen(nullptr);
+	} catch (const Require_Error&) {
+		got_exception = true;
+	}
+	require(got_exception);
+}
+// ...
+	require(strlen("a\0b") == 1);
+	test_null_strlen();
+// ...
+```
+
 Mit dem registrieren eines globalen Handlers kann ich die Ausgabe noch ein
 wenig verbessern. Dazu greife ich in `require.h` auf eine globale Variable
 zu (um sie auch sicher zu verwenden):
@@ -336,13 +358,25 @@ Natürlich müssen auch die Tests in `t_strlen.cpp` angepasst werden:
 
 ```c++
 // ...
+void test_null_strlen() {
+	// ...
+	try {
+	#if 0 // don't use raw pointer
+		std::ignore = strlen(nullptr);
+	#endif // don't use raw pointer
+		std::ignore = strlen(String_Literal { nullptr });
+	// ...
+	require(got_exception);
+}
+// ...
 int main() {
 	#if 0 // don't use raw strings
 	// ...
-	require(strlen("a\0b") == 1);
+	test_null_strlen();
 	#endif // don't use raw strings
 	require(strlen(String_Literal { "" }) == 0);
 	require(strlen(String_Literal { "abc" }) == 3);
 	require(strlen(String_Literal { "a\0b" }) == 1);
+	test_null_strlen();
 }
 ```

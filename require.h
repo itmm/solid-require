@@ -3,7 +3,7 @@
 
 #include <stdexcept>
 
-#line 215
+#line 237
 class Global_Require_Handler {
 	public:
 		Global_Require_Handler();
@@ -16,7 +16,7 @@ class Global_Require_Handler {
 class Require_Error: public std::logic_error {
 	public:
 		Require_Error(const std::string& what): 
-#line 229
+#line 251
 			std::logic_error { handler_(what) } { }
 	private:
 		static Global_Require_Handler handler_;

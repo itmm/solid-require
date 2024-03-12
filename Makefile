@@ -2,19 +2,19 @@
 
 CXXFLAGS += -Wall -std=c++20
 
-SOURCES = require.cpp strlen.cpp t_strlen.cpp
-HEADER = require.h strlen.h string-literal.h
 APP = t_strlen
+SOURCES = require.cpp strlen.cpp $(APP).cpp
+HEADER = require.h strlen.h string-literal.h
 MDP_RUN = mdp.run
 
 test: 
 	$(MAKE) $(MDP_RUN)
 	./$(APP)
 
-mdp.run:  README.md
+mdp.run: README.md
 	mdp $^ && date >$@ && $(MAKE) $(APP)
 
-t_strlen: $(SOURCES) $(HEADER)
+$(APP): $(SOURCES) $(HEADER)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $@
 
 clean:
