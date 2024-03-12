@@ -6,7 +6,7 @@
 #include "strlen.h"
 
 int main() {
-#line 338
+#line 344
 	require(strlen(String_Literal { "" }) == 0);
 	require(strlen(String_Literal { "abc" }) == 3);
 	require(strlen(String_Literal { "a\0b" }) == 1);

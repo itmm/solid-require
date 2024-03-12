@@ -27,9 +27,9 @@ einer Zeichenfolge. Hier zuerst die Implementierung in der Datei `strlen.cpp`:
 
 [[nodiscard]] size_t strlen(const char* str) {
 	assert(str);
-	size_t count { 0 };
-	for (; *str; ++str, ++count) { }
-	return count;
+	auto cur { str };
+	for (; *cur; ++cur) { }
+	return cur - str;
 }
 ```
 
@@ -281,12 +281,17 @@ Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
 #if 0 // don't use raw c string
 [[nodiscard]] size_t strlen(const char* str) {
 #endif // don't use raw c string
-[[nodiscard]] size_t strlen(String_Literal str) {
+[[nodiscard]] size_t strlen(const String_Literal& str) {
 	#if 0 // don't use require
 	// ...
 	require(str);
 	#endif // don't use require
 	// ...
+	for (; *cur; ++cur) { }
+	#if 0 // don't use raw pointers
+	return cur - str;
+	#endif // don't use raw pointers
+	return cur.ptr() - str.ptr();
 }
 ```
 
@@ -307,6 +312,7 @@ class String_Literal {
 		String_Literal& operator++() {
 			require(*str_); ++str_; return *this;
 		}
+		const char* ptr() const { return str_; }
 	private:
 		const char* str_;
 };
@@ -323,7 +329,7 @@ Der Header `strlen.h` muss ebenfalls korrigiert werden:
 #if 0 // don't use raw string
 [[nodiscard]] size_t strlen(const char* str);
 #endif // don't use raw string
-[[nodiscard]] size_t strlen(String_Literal str);
+[[nodiscard]] size_t strlen(const String_Literal& str);
 ```
 
 Natürlich müssen auch die Tests in `t_strlen.cpp` angepasst werden:

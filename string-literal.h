@@ -1,4 +1,4 @@
-#line 296 "README.md"
+#line 301 "README.md"
 #pragma once
 
 #include "require.h"
@@ -13,6 +13,7 @@ class String_Literal {
 		String_Literal& operator++() {
 			require(*str_); ++str_; return *this;
 		}
+		const char* ptr() const { return str_; }
 	private:
 		const char* str_;
 };
