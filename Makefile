@@ -3,8 +3,8 @@
 CXXFLAGS += -Wall -std=c++20
 
 APP = t_strlen
-SOURCES = require.cpp strlen.cpp $(APP).cpp
-HEADER = require.h strlen.h string-literal.h
+SOURCES = solid/require.cpp strlen.cpp $(APP).cpp
+HEADER = solid/require.h strlen.h string-literal.h
 MDP_RUN = mdp.run
 
 test: 

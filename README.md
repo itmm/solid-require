@@ -93,6 +93,17 @@ zusätzlich einzubauen. Ich habe `strlen.cpp` entsprechend angepasst:
 }
 ```
 
+Ich verwende [`md-patcher`](https://github.com/itmm/md-patcher), um aus dem
+Markdown-Dokument den Source-Code zu extrahieren. Dateinamen werden im
+Fließtext als Code-Kommentare angegeben. Die Code-Blöcke probieren, den
+angegebenen Text in das bestehende Programm zu integrieren.
+
+Eine besondere Rolle erhalten dabei die Kommentare `// ...`. Sie kopieren
+alle Zeilen aus dem ursprünglichen Programm, bis sie auf die Zeile nach
+dem Kommentar stoßen. Das ist etwas unintuitiv, aber einfach zu parsen.
+Und mit der Zeit gewöhnt man sich daran.
+
+Die generierten Sourcen sind mit der Markdown-Datei eingecheckt.
 
 ## Eine Exception werfen
 
@@ -131,18 +142,20 @@ aus.
 
 Im nächsten Schritt, packe ich das Werfen der Exception in eine eigene
 Funktion, die dann `assert` ersetzen kann. Hier ist dazu der Header
-`require.h`:
+`solid/require.h`:
 
 ```c++
 #pragma once
 
 #include <stdexcept>
 
-class Require_Error: public std::logic_error {
-	public:
-		Require_Error(const std::string& what): 
-			std::logic_error { what } { }
-};
+namespace solid::require {
+	class Error: public std::logic_error {
+		public:
+			Error(const std::string& what): 
+				std::logic_error { what } { }
+	};
+}
 
 #define require(...) do { if (!(__VA_ARGS__)) { \
 	require_failed(__FILE__, __LINE__, #__VA_ARGS__) } } while (false)
@@ -154,7 +167,7 @@ class Require_Error: public std::logic_error {
 	what += #LINE; \
 	what += " assertion failed: "; \
 	what += EXPR; \
-	throw Require_Error { what };
+	throw solid::require::Error { what };
 ```
 
 Damit kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
@@ -168,7 +181,7 @@ Damit kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
 #include <stdexcept>
 #endif // don't throw exception
 
-#include "require.h"
+#include "solid/require.h"
 
 [[nodiscard]] size_t strlen(const char* str) {
 	#if 0 // don't use assert and exception
@@ -189,7 +202,7 @@ Die gleiche Anpassung gilt für `t_strlen.cpp`:
 #include <cassert>
 #endif
 
-#include "require.h"
+#include "solid/require.h"
 #include "strlen.h"
 
 int main() {
@@ -215,7 +228,7 @@ void test_null_strlen() {
 	bool got_exception { false };
 	try {
 		std::ignore = strlen(nullptr);
-	} catch (const Require_Error&) {
+	} catch (const solid::require::Error&) {
 		got_exception = true;
 	}
 	require(got_exception);
@@ -227,35 +240,37 @@ void test_null_strlen() {
 ```
 
 Mit dem registrieren eines globalen Handlers kann ich die Ausgabe noch ein
-wenig verbessern. Dazu greife ich in `require.h` auf eine globale Variable
-zu (um sie auch sicher zu verwenden):
+wenig verbessern. Dazu greife ich in `solid/require.h` auf eine globale
+Variable zu (um sie auch sicher zu verwenden):
 
 ```c++
 // ...
-#include <stdexcept>
+namespace solid::require {
+	class Global_Handler {
+		public:
+			Global_Handler();
+			const std::string& operator()(
+				const std::string& what
+			) {
+				return what;
+			}
+	};
 
-class Global_Require_Handler {
-	public:
-		Global_Require_Handler();
-		const std::string& operator()(const std::string& what) {
-			return what;
-		}
-};
-
-class Require_Error: public std::logic_error {
-	public:
-		Require_Error(const std::string& what): 
-			#if 0 // don't initialize without handler
-			std::logic_error { what } { }
-			#endif // don't initialize without handler
-			std::logic_error { handler_(what) } { }
-	private:
-		static Global_Require_Handler handler_;
-};
+	class Error: public std::logic_error {
+		public:
+			Error(const std::string& what): 
+				#if 0 // don't initialize without handler
+				std::logic_error { what } { }
+				#endif // don't initialize without handler
+				std::logic_error { handler_(what) } { }
+		private:
+			static Global_Handler handler_;
+	};
+}
 // ...
 ```
 
-In der Datei `require.cpp` initialisiere ich den Handler und registriere
+In der Datei `solid/require.cpp` initialisiere ich den Handler und registriere
 dabei einen Exception-Handler:
 
 ```c++
@@ -263,19 +278,21 @@ dabei einen Exception-Handler:
 
 #include "require.h"
 
-Global_Require_Handler::Global_Require_Handler() {
+using namespace solid::require;
+
+solid::require::Global_Handler::Global_Handler() {
 	std::set_terminate([]() -> void {
 		try {
 			std::rethrow_exception(std::current_exception());
 		}
-		catch (const Require_Error& err) {
+		catch (const Error& err) {
 			std::cerr << err.what() << "\n";
 			std::exit(EXIT_FAILURE);
 		}
 	});
 }
 
-Global_Require_Handler Require_Error::handler_ { };
+Global_Handler solid::require::Error::handler_ { };
 ```
 
 Damit habe ich ganz ohne irgendwelche Änderungen am Haupt-Programm eine
@@ -296,7 +313,7 @@ Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
 // ...
 
 #if 0 // don't use require
-#include "require.h"
+#include "solid/require.h"
 #endif // don't use require
 #include "string-literal.h"
 
@@ -322,7 +339,7 @@ Ich habe den neuen Typ in `string-literal.h` so definiert:
 ```c++
 #pragma once
 
-#include "require.h"
+#include "solid/require.h"
 
 class String_Literal {
 	public:

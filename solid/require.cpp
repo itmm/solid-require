@@ -1,18 +1,20 @@
-#line 262 "README.md"
+#line 277 "README.md"
 #include <iostream>
 
 #include "require.h"
 
-Global_Require_Handler::Global_Require_Handler() {
+using namespace solid::require;
+
+solid::require::Global_Handler::Global_Handler() {
 	std::set_terminate([]() -> void {
 		try {
 			std::rethrow_exception(std::current_exception());
 		}
-		catch (const Require_Error& err) {
+		catch (const Error& err) {
 			std::cerr << err.what() << "\n";
 			std::exit(EXIT_FAILURE);
 		}
 	});
 }
 
-Global_Require_Handler Require_Error::handler_ { };
+Global_Handler solid::require::Error::handler_ { };
