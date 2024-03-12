@@ -23,7 +23,8 @@ einer Zeichenfolge. Hier zuerst die Implementierung in der Datei `strlen.cpp`:
 
 ```c++
 #include <cassert>
-#include <cstddef>
+
+#include "strlen.h"
 
 [[nodiscard]] size_t strlen(const char* str) {
 	assert(str);
@@ -118,8 +119,7 @@ Funktion mit `nullptr` aufzurufen. Vielleicht ist eine Exception für diesen
 Fehlerfall besser geeignet. Ich habe `strlen.cpp` wie folgt angepasst:
 
 ```c++
-// ...
-#include <cstddef>
+#include <cassert>
 #include <stdexcept>
 // ...
 [[nodiscard]] size_t strlen(const char* str) {
@@ -175,13 +175,11 @@ Damit kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
 ```c++
 #if 0 // don't use assert
 #include <cassert>
-#endif // don't use assert
-#include <cstddef>
-#if 0 // don't throw exception
 #include <stdexcept>
-#endif // don't throw exception
 
+#endif // don't use assert
 #include "solid/require.h"
+#include "strlen.h"
 
 [[nodiscard]] size_t strlen(const char* str) {
 	#if 0 // don't use assert and exception
@@ -310,12 +308,12 @@ darf, kann ich den Test zur Laufzeit an dieser Stelle vermeiden. Die
 Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
 
 ```c++
-// ...
-
 #if 0 // don't use require
+// ...
 #include "solid/require.h"
 #endif // don't use require
 #include "string-literal.h"
+// ...
 
 #if 0 // don't use raw c string
 [[nodiscard]] size_t strlen(const char* str) {
