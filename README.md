@@ -145,7 +145,7 @@ aus. Und man muss bei der weiteren Verwendung der Datei im Hinterkopf behalten,
 dass es diese Kommentare immer noch gibt! Sie müssen ggf. übersprungen werden.
 
 Im nächsten Schritt, packe ich das Werfen der Exception in ein Makro, das dann
-`assert` ersetzen kann. Hier ist dazu der Header `solid/require.h`:
+`assert` ersetzen kann. Hier ist dazu der Header `include/solid/require.h`:
 
 ```c++
 #pragma once
@@ -249,7 +249,7 @@ void test_null_strlen() {
 ```
 
 Mit dem registrieren eines globalen Handlers kann ich die Ausgabe noch ein
-wenig verbessern. Dazu greife ich in `solid/require.h` auf eine globale
+wenig verbessern. Dazu greife ich in `include/solid/require.h` auf eine globale
 Variable zu. Damit stelle ich sicher, dass der Konstruktor der globalen
 Variable rechtzeitig aufgerufen wird:
 
@@ -278,13 +278,13 @@ namespace solid::require {
 // ...
 ```
 
-In der Datei `solid/require.cpp` registriere ich im Konstruktor des Handlers
-einen Exception-Handler:
+In der Datei `solid/require.cpp` registriere ich im Konstruktor des
+Handlers einen Exception-Handler:
 
 ```c++
 #include <iostream>
 
-#include "require.h"
+#include "solid/require.h"
 
 using namespace solid::require;
 

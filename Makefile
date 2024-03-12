@@ -1,10 +1,10 @@
 .PHONY: test clean
 
-CXXFLAGS += -Wall -std=c++20
+CXXFLAGS += -Wall -std=c++20 -I./include
 
 APP = t_strlen
 SOURCES = solid/require.cpp strlen.cpp $(APP).cpp
-HEADER = solid/require.h strlen.h string-literal.h
+HEADER = include/solid/require.h strlen.h string-literal.h
 MDP_RUN = mdp.run
 
 test: 
