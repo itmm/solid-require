@@ -1,7 +1,7 @@
 <!-- vim: set spelllang=de noexpandtab: -->
 # Das Problem mit `assert()`
 
-Auf [www.knp.de](https://www.knp.de) halte ich meine Gedanken zu
+Auf [www.knp.de](http://www.knp.de) halte ich meine Gedanken zu
 Programmiersprachen fest. Hauptsächlich werden das erstmal C++ und Oberon
 sein. Mit diesen Sprachen befasse ich mich im Augenblick am intensivsten.
 Das Ziel ist es, kleine Handreichungen zu geben, um stabilere und bessere
@@ -151,6 +151,7 @@ Im nächsten Schritt, packe ich das Werfen der Exception in ein Makro, das dann
 #pragma once
 
 #include <stdexcept>
+#include <string>
 
 namespace solid::require {
 	class Error: public std::logic_error {

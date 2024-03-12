@@ -2,9 +2,10 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
 
 namespace solid::require {
-#line 259
+#line 260
 	class Global_Handler {
 		public:
 			Global_Handler();
@@ -13,15 +14,15 @@ namespace solid::require {
 			) { return what; }
 	};
 
-#line 156
+#line 157
 	class Error: public std::logic_error {
 		public:
 			Error(const std::string& what): 
-#line 273
+#line 274
 				std::logic_error { handler_(what) } { }
 		private:
 			static Global_Handler handler_;
-#line 160
+#line 161
 	};
 }
 
