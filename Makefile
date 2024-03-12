@@ -3,7 +3,7 @@
 CXXFLAGS += -Wall -std=c++20
 
 SOURCES = require.cpp strlen.cpp t_strlen.cpp
-HEADER = require.h strlen.h
+HEADER = require.h strlen.h string-literal.h
 APP = t_strlen
 MDP_RUN = mdp.run
 

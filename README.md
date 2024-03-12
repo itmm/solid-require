@@ -276,12 +276,12 @@ Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
 #if 0 // don't use require
 #include "require.h"
 #endif // don't use require
-#include "c-str.h"
+#include "string-literal.h"
 
 #if 0 // don't use raw c string
 [[nodiscard]] size_t strlen(const char* str) {
 #endif // don't use raw c string
-[[nodiscard]] size_t strlen(C_Str str) {
+[[nodiscard]] size_t strlen(String_Literal str) {
 	#if 0 // don't use require
 	// ...
 	require(str);
@@ -290,21 +290,21 @@ Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
 }
 ```
 
-Ich habe den neuen Typ in `c-str.h` so definiert:
+Ich habe den neuen Typ in `string-literal.h` so definiert:
 
 ```c++
 #pragma once
 
 #include "require.h"
 
-class C_Str {
+class String_Literal {
 	public:
-		explicit C_Str(const char* str = ""): str_ { str } {
+		explicit String_Literal(const char* str = ""): str_ { str } {
 			require(str);
 		}
 
 		char operator*() const { return *str_; }
-		C_Str& operator++() {
+		String_Literal& operator++() {
 			require(*str_); ++str_; return *this;
 		}
 	private:
@@ -318,12 +318,12 @@ Der Header `strlen.h` muss ebenfalls korrigiert werden:
 // ...
 #include <cstddef>
 
-#include "c-str.h"
+#include "string-literal.h"
 
 #if 0 // don't use raw string
 [[nodiscard]] size_t strlen(const char* str);
 #endif // don't use raw string
-[[nodiscard]] size_t strlen(C_Str str);
+[[nodiscard]] size_t strlen(String_Literal str);
 ```
 
 Natürlich müssen auch die Tests in `t_strlen.cpp` angepasst werden:
@@ -335,8 +335,8 @@ int main() {
 	// ...
 	require(strlen("a\0b") == 1);
 	#endif // don't use raw strings
-	require(strlen(C_Str { "" }) == 0);
-	require(strlen(C_Str { "abc" }) == 3);
-	require(strlen(C_Str { "a\0b" }) == 1);
+	require(strlen(String_Literal { "" }) == 0);
+	require(strlen(String_Literal { "abc" }) == 3);
+	require(strlen(String_Literal { "a\0b" }) == 1);
 }
 ```

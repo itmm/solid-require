@@ -4,7 +4,7 @@
 #include <cstddef>
 
 #line 321
-#include "c-str.h"
+#include "string-literal.h"
 
 #line 326
-[[nodiscard]] size_t strlen(C_Str str);
+[[nodiscard]] size_t strlen(String_Literal str);

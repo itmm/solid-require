@@ -3,14 +3,14 @@
 
 #include "require.h"
 
-class C_Str {
+class String_Literal {
 	public:
-		explicit C_Str(const char* str = ""): str_ { str } {
+		explicit String_Literal(const char* str = ""): str_ { str } {
 			require(str);
 		}
 
 		char operator*() const { return *str_; }
-		C_Str& operator++() {
+		String_Literal& operator++() {
 			require(*str_); ++str_; return *this;
 		}
 	private:
