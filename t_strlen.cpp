@@ -1,24 +1,24 @@
-#line 217 "README.md"
+#line 208 "README.md"
 #include "solid/require.h"
-#line 46
+#line 45
 #include "strlen.h"
 
-#line 239
+#line 229
 void test_null_strlen() {
 	bool got_exception { false };
 	try {
-#line 396
+#line 384
 		std::ignore = strlen(String_Literal { nullptr });
-#line 243
+#line 233
 	} catch (const solid::require::Error&) { got_exception = true; }
 	require(got_exception);
 }
-#line 48
+#line 47
 int main() {
-#line 405
+#line 393
 	require(strlen(String_Literal { "" }) == 0);
 	require(strlen(String_Literal { "abc" }) == 3);
 	require(strlen(String_Literal { "a\0b" }) == 1);
 	test_null_strlen();
-#line 52
+#line 51
 }

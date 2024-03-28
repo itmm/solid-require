@@ -1,27 +1,26 @@
-<!-- vim: set spelllang=de noexpandtab: -->
-# Das Problem mit `assert()`
+<!-- vim: set spelllang=en noexpandtab: -->
+# Problems with `assert()`
 
-Auf [www.knp.de](http://www.knp.de) halte ich meine Gedanken zu
-Programmiersprachen fest. Hauptsächlich werden das erstmal C++ und Oberon
-sein. Mit diesen Sprachen befasse ich mich im Augenblick am intensivsten.
-Das Ziel ist es, kleine Handreichungen zu geben, um stabilere und bessere
-Programme zu entwickeln. Gerade C++ ist eine riesige Sprache und hat einen
-sehr starken Fokus auf Geschwindigkeit. Dafür werden oft Sicherheit und
-Stabilität geopfert. Auf einer schwankenden Plattform kann aber nur sehr
-schwierig etwas Stabiles errichtet werden.
+At [www.knp.de](http://www.knp.de) I keep my thoughts about programming languages. At the
+beginning that will mostly cover C++ and Oberon. That are the languages, that I currently use
+most often. It is my goal to give guidance to write more robust and better programs.
+Especially C++ is a huge language with a strong focus on execution speed. Other important
+topics like safety and stability have queue in afterwards. But on a shaking platform it is
+hard to construct a stable building.
 
-Daher ist der Sinn dieser Beiträge, das Fundament zu festigen. Damit können 
-wir leichter gute Programme schreiben. Wenn sie dann etwas langsamer Laufen,
-ist das ein geringer Preis für die resultierende Qualitätssteigerung.
+It is my goal of these articles to strengthen the base. On this base you can write good
+programs with greater ease. If they run a tick more slowly that is a small price to pay for
+the greater resulting quality.
 
-Wenn ihr Fehler und Verbesserungen findet, eröffnet bitte Issues auf GitHub
-oder sendet mir Pull-Requests.
+If you find an issue or improvement, please open an issue on GitHub. If you can also provide
+a fix with a pull request that is most warmly welcome.
 
-## Wann sollte ich `assert()` verwenden
 
-Das Makro `assert` ist in C++ ein Überbleibsel aus den C Tagen. Ich verwende
-ein kleines Programm als durchgehendes Beispiel: die Ermittlung der Länge
-einer Zeichenfolge. Hier zuerst die Implementierung in der Datei `strlen.cpp`:
+## When should I use `assert()`?
+
+The macro `assert` in C++ is a relict from the C days. I use a small program as an example:
+calculate the length of a zero-terminated `char` array. Here is my first implementation in
+the file `strlen.cpp`:
 
 ```c++
 #include <cassert>
@@ -36,9 +35,9 @@ einer Zeichenfolge. Hier zuerst die Implementierung in der Datei `strlen.cpp`:
 }
 ```
 
-Mein Dank an [Zirafinu](https://github.com/Zirafinu), für die Optimierung dieser
-Funktion. Ich hatte sie zuerst mit einem Zähler ohne Zeiger-Arithmetik
-implementiert. Ein kleines Test-Programm `t_strlen.cpp` dafür sieht so aus:
+Many thanks to [Zirafinu](https://github.com/Zirafinu) for the optimization of this function.
+My first version had an additional counter and no pointer arithmetics. I also wrote a small
+test program `t_strlen.cpp`:
 
 ```c++
 #include <cassert>
@@ -52,7 +51,8 @@ int main() {
 }
 ```
 
-Damit der Test baut, brauche ich noch den Header `strlen.h`:
+To compile the function and the test program I also wrote the following header file
+`strlen.h`:
 
 ```c++
 #pragma once
@@ -62,32 +62,26 @@ Damit der Test baut, brauche ich noch den Header `strlen.h`:
 [[nodiscard]] size_t strlen(const char* str);
 ```
 
-In diesem Progrämmchen benutze ich `assert` für zwei unterschiedliche
-Aufgaben:
+In this program I used `assert` for two different tasks:
 
-1. Ich prüfe in der Funktion `strlen`, ob der übergebene Zeiger `nullptr`
-   ist und
+1. I check in the function `strlen`, if the passed pointer is valid (not `nullptr`) and
 
-2. Ich verwende in es `t_strlen.cpp` für einfache Unit-Tests.
+2. I use `assert` in `t_strlen.cpp` for simple unit-tests.
 
-Beide Anwendungen habe ich in der freien Wildbahn oft gesehen. Es handelt
-sich nicht um ein konstruiertes Problem!
+Both usages I found multiple times in other programs. It is not a hypothetical problem!
 
-Gerade der erste Fall macht jedoch richtig Probleme: Was passiert, wenn ich
-eine Release-Version baue? In diesem Fall wird das `assert` einfach
-weggelassen. Falls `strlen` mit einem `nullptr` aufgerufen wird, kann alles
-Mögliche passieren. In der Entwicklungsumgebung treten diese Probleme nicht
-auf.
+But especially the first usage is problematic: What happens, if I build a release version?
+In that case, calls to `assert` will be deleted. The macro will expand to nothing. If I call
+`strlen` with a `nullptr` all hell can break loose. But I can't reproduce the problems in
+my development environment with my development builds.
 
-Es ist ein bekanntes Problem, dass die Release-Version sich nicht von der
-Debug-Version unterscheiden sollte. Es ist jedoch keine Lösung, mit der
-Debug-Version in die Produktion zu gehen: oftmals fehlen dort die
-Optimierungsschritte, die für einen schnellen Ablauf notwendig sind.
+It is a known problem that the release version should not differ from the debug version.
+But you should not run the debug version in production: elementary optimization steps are
+often missing and the execution speed is greatly degraded.
 
-Ich sollte also die Release-Version testen und in der habe ich kein `assert`
-mehr. Klar, ich kann es auch dort einbinden, aber das ist dann kein
-Standard-C++ mehr. Eine Lösung kann es sein, den Test noch einmal
-zusätzlich einzubauen. Ich habe `strlen.cpp` entsprechend angepasst:
+I should use the release version for testing. But then I no longer have the `assert`
+function. You *can* enable it nonetheless, but then you left the street of standard C++.
+One solution can be an additional test. I can adjust `strlen.cpp` in the following way:
 
 ```c++
 // ...
@@ -98,29 +92,28 @@ zusätzlich einzubauen. Ich habe `strlen.cpp` entsprechend angepasst:
 }
 ```
 
-Ich verwende [`md-patcher`](https://github.com/itmm/md-patcher), um aus dem
-Markdown-Dokument den Source-Code zu extrahieren. Dateinamen werden im
-Fließtext als Code-Kommentare angegeben. Die Code-Blöcke probieren, den
-angegebenen Text in das bestehende Programm zu integrieren.
+I use [`md-patcher`](https://github.com/itmm/md-patcher), to extract the source code out of
+the Markdown document. File names are specified in the main text as inline code blocks.
+`md-patcher` tries to combine the code blocks to a compilable program.
 
-Eine besondere Rolle erhalten dabei die Kommentare `// ...`. Sie kopieren
-alle Zeilen aus dem ursprünglichen Programm, bis sie auf die Zeile nach
-dem Kommentar stoßen. Das ist etwas unintuitiv, aber einfach zu parsen.
-Und mit der Zeit gewöhnt man sich daran.
+A special role have comments of the form `// ...`. They act as a wildcard. `md-patcher`
+skips the lines of the original program until it matches the following line (or until a
+line with a shorter indentation occurs). That is kind of strange to look at, but easy to
+parse. You will get used to it after a bit of reading.
 
-Die generierten Sourcen sind mit der Markdown-Datei eingecheckt.
+The generated sources are committed together with the Markdown file in the repository.
 
-## Eine Exception werfen
 
-Das Verhalten ist besser, aber noch nicht gut. Zumindest passiert jetzt nichts
-Schlimmes, wenn wir die Funktion mit `nullptr` aufrufen. Aber es wird auch
-kein Fehler zurückgeliefert. Ich kann natürlich argumentieren, dass `0` die
-perfekt richtige Antwort für den Aufruf mit `nullptr` ist. Aber dann
-bräuchte ich den `assert` gar nicht.
+## Throw an Exception
 
-Ich will mit dem `assert` ja gerade ausdrücken, dass es ein Fehler ist, die
-Funktion mit `nullptr` aufzurufen. Vielleicht ist eine Exception für diesen
-Fehlerfall besser geeignet. Ich habe `strlen.cpp` wie folgt angepasst:
+The current state of the source code is better, but far from acceptable. At least, nothing
+bad happens, when the function is called with `nullptr`. But no error state is returned.
+I can argue, that `0` is the perfectly correct answer for calling `strlen` with `nullptr`.
+But `assert` means something different.
+
+With `assert` I state explicitly, that it is an error to call `strlen` with `nullptr`.
+Maybe an exception is the more appropriate way to handle this error condition in
+`strlen.cpp`:
 
 ```c++
 #include <cassert>
@@ -136,16 +129,14 @@ Fehlerfall besser geeignet. Ich habe `strlen.cpp` wie folgt angepasst:
 }
 ```
 
-Das `#if 0` ist ein Workaround für mein Program
-[`md-patcher`](https://github.com/itmm/md-patcher).  Momentan gibt
-es keine Möglichkeit, bestehende Zeilen zu löschen. Wenn Sie jedoch mit
-einem `#if 0` eingeklammert werden, werden Sie nicht mehr generiert. Der
-resultierende Code ist sauber. Im Markdown sieht es jedoch nicht so toll
-aus. Und man muss bei der weiteren Verwendung der Datei im Hinterkopf behalten,
-dass es diese Kommentare immer noch gibt! Sie müssen ggf. übersprungen werden.
+The `#if 0` is a workaround of [`md-patcher`](https://github.com/itmm/md-patcher). Currently
+there is no way to delete lines directly. But if I comment them out this way, they will be
+no longer generated. It looks not great in Markdown and you have to keep in mind, that the
+lines are still there (and must be skipped with `// ...` eventually.
 
-Im nächsten Schritt, packe ich das Werfen der Exception in ein Makro, das dann
-`assert` ersetzen kann. Hier ist dazu der Header `include/solid/require.h`:
+As a next step, I put the throwing of the exception into a macro that will replace `assert`.
+A macro is necessary to collect the current source code file name and line number. I put it
+into the header `include/solid/require.h`:
 
 ```c++
 #pragma once
@@ -174,17 +165,17 @@ namespace solid::require {
 	throw solid::require::Error { what };
 ```
 
-Meinen stabilen Code-Fragmenten habe ich den Namensraum `solid` spendiert. Da
-es neben der Exception bald noch eine weitere Klasse gibt, habe ich diesem
-Artikel einen eigenen Sub-Namensraum `solid::require` spendiert.
+I put my code fragments that help to improve software stability in the namespace `solid`. As
+there will be more classes beside the exception soon, I put the exception into a special
+namespace `solid::require`.
 
-Das Zusammensetzen der Nachricht vollführe ich in mehreren Schritten. Die Idee
-dahinter ist, dass es vermutlich mehrere `require`-Aufrufe in einer Datei
-gibt. Daher habe ich die Zeichenketten, die vermutlich mehrfach vorkommen,
-nicht zusammengesetzt. Dadurch spare ich Konstanten-Platz, wenn es auch etwas
-mehr Code bedeutet.
+I perform the combination of the message in multiple steps. That is, because there are
+hopefully multiple `require` calls in the same source file. Therefore I put all characters
+that are unique per source file into one string and concatenate the line number afterwards.
+That way, I do not need so much space for string constants. But the result is a bit more
+code.
 
-Mit dem Makro kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
+Now I can use the macro in `strlen.cpp`:
 
 ```c++
 #if 0 // don't use assert
@@ -207,7 +198,7 @@ Mit dem Makro kann ich dann die Funktion in `strlen.cpp` kompakter beschreiben:
 }
 ```
 
-Eine ähnliche Anpassung habe ich in `t_strlen.cpp` durchgeführt:
+A similar adaption I perform in `t_strlen.cpp`:
 
 ```c++
 #if 0
@@ -229,8 +220,7 @@ int main() {
 }
 ```
 
-Zusätzlich kann ich nun Fehlschläge explizit testen. Ein Aufruf von `assert`
-ist mir immer um die Ohren geflogen. Aber die Exception kann ich abfangen:
+I can now also test, that `strlen` fails as expected by catching the exception:
 
 ```c++
 // ...
@@ -249,10 +239,10 @@ void test_null_strlen() {
 // ...
 ```
 
-Mit dem registrieren eines globalen Handlers kann ich die Ausgabe noch ein
-wenig verbessern. Dazu greife ich in `include/solid/require.h` auf eine globale
-Variable zu. Damit stelle ich sicher, dass der Konstruktor der globalen
-Variable rechtzeitig aufgerufen wird:
+For a nicer output I register a global exception handler. To get the right moment to register
+the handler, I access in `include/solid/require.h` a global variable on every test. That
+assures that the constructor of the global variable is called early enough and can register
+the handler:
 
 ```c++
 // ...
@@ -279,8 +269,7 @@ namespace solid::require {
 // ...
 ```
 
-In der Datei `solid/require.cpp` registriere ich im Konstruktor des
-Handlers einen Exception-Handler:
+In `solid/require.cpp` I register the handler in the constructor of the global variable:
 
 ```c++
 #include <iostream>
@@ -304,22 +293,21 @@ solid::require::Global_Handler::Global_Handler() {
 Global_Handler solid::require::Error::handler_ { };
 ```
 
-Damit habe ich ganz ohne irgendwelche Änderungen am Haupt-Programm eine
-minimale Ausgabe produziert. Und das sowohl in der Debug- als auch der
-Release-Version.
+Without any modification in them main program I have reduced the output to a readable
+amount. And that works both in the debug and release version.
 
-Die Ausgabe habe ich so gewählt, dass Editoren die Zeile als Fehlermeldung
-parsen können und direkt in die richtige Zeile springen können.
+I choose the output, so that editors and IDEs can interpret it as an error message and jump
+directly to the line of the `require` call.
 
-Wäre schon ganz gut, wenn es nicht noch eine weitere Verbesserung gäbe …
+I am pretty happy with this code. But there is one more thing …
 
 
-## Bessere Typen
+## Better Types
 
-Ich sehe die Schwäche der Implementierung von `strlen` im Parameter-Typ.
-Wenn ich bereits dem Compiler sage, dass der Parameter nicht `nullptr` sein
-darf, kann ich den Test zur Laufzeit an dieser Stelle vermeiden. Die
-Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
+I see in the type of the parameter of `strlen` a problem. It would be better, if I can say,
+that this type is not allowed to be `nullptr`. Then the compiler can check and not allow to
+call this function in an insecure way. I use the new class `String_Literal` in `strlen.cpp`
+to achieve this. I no longer need the `require` check any more:
 
 ```c++
 #if 0 // don't use require
@@ -346,7 +334,7 @@ Verwendung der neuen Klasse in `strlen.cpp` stelle ich mir so vor:
 }
 ```
 
-Ich habe den neuen Typ in `string-literal.h` so definiert:
+I defined the class `String_Literal` in `string-literal.h` in the following way:
 
 ```c++
 #pragma once
@@ -369,7 +357,7 @@ class String_Literal {
 };
 ```
 
-Der Header `strlen.h` muss ebenfalls an die neue Signatur angepasst werden:
+I have changed the signature of `strlen`. So, I have to adjust it in `strlen.h` also:
 
 ```c++
 // ...
@@ -383,7 +371,7 @@ Der Header `strlen.h` muss ebenfalls an die neue Signatur angepasst werden:
 [[nodiscard]] size_t strlen(const String_Literal& str);
 ```
 
-Natürlich müssen auch die Tests in `t_strlen.cpp` angepasst werden:
+And I have to adjust the test-cases in `t_strlen.cpp`:
 
 ```c++
 // ...
@@ -409,10 +397,8 @@ int main() {
 }
 ```
 
-Meine Herleitung von `solid/require.h` ist dadurch jedoch nicht nutzlos
-geworden. Ich verwende immer noch `require`, aber jetzt an einer anderen
-Stelle: bei der Erzeugung der `String_Literal`-Instanzen.
+But I still need the `require` function. But now in the construction of the `String_Literal`.
+That makes the code of the `strlen` function clearer: I have moved the test out of the
+function and declared with the new parameter type the constraints I impose on it.
 
-Dadurch wurde der Test außerhalb der eigentlichen Funktion gezogen. In der
-Funktion benötige ich keinen Code zum Testen der Parameter mehr. Ich kann mich
-ganz auf die Umsetzung der eigentlichen Funktion konzentrieren.
+I think, that is a nice version to close this article.
