@@ -1,6 +1,6 @@
 .PHONY: all tests clean
 
-CXXFLAGS += -Wall -Wextra -Wpedantic -Werror -std=c++20 -I./include
+CXXFLAGS += -O3 -Wall -Wextra -Wpedantic -Werror -std=c++20 -I./include
 
 T_APP = t_strlen
 T_SOURCES = strlen.cpp $(T_APP).cpp
@@ -32,7 +32,7 @@ tests: $(T_APP)
 
 $(T_APP): $(T_SOURCES) $(T_HEADER) $(T_HEADER) $(LIB)
 	@echo building $@
-	$(CXX) $(CXXFLAGS) $(T_SOURCES) $(LIB) -o $@
+	@$(CXX) $(CXXFLAGS) $(T_SOURCES) $(LIB) -o $@
 
 $(LIB): $(L_OBJECTS)
 	@echo building $@
