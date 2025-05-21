@@ -1,2 +1,4 @@
 mdp.run
 t_strlen
+*.a
+**/*.o
