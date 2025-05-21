@@ -226,6 +226,8 @@ I can now also test, that `strlen` fails as expected by catching the exception:
 // ...
 #include "strlen.h"
 
+#include <tuple>
+
 void test_null_strlen() {
 	bool got_exception { false };
 	try {

@@ -5,7 +5,7 @@
 #include <string>
 
 namespace solid::require {
-#line 250
+#line 252
 	class Global_Handler {
 		public:
 			Global_Handler();
@@ -18,7 +18,7 @@ namespace solid::require {
 	class Error: public std::logic_error {
 		public:
 			Error(const std::string& what): 
-#line 264
+#line 266
 				std::logic_error { handler_(what) } { }
 		private:
 			static Global_Handler handler_;

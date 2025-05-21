@@ -3,8 +3,8 @@
 
 #include <cstddef>
 
-#line 366
+#line 368
 #include "string-literal.h"
 
-#line 371
+#line 373
 [[nodiscard]] size_t strlen(const String_Literal& str);
