@@ -1,10 +1,10 @@
-#line 58 "README.md"
+#line 59 "README.md"
 #pragma once
 
 #include <cstddef>
 
-#line 368
+#line 375
 #include "string-literal.h"
 
-#line 373
+#line 380
 [[nodiscard]] size_t strlen(const String_Literal& str);
