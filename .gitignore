@@ -1,4 +1,4 @@
 mdp.run
-t_strlen
+t_slen
 *.a
 **/*.o

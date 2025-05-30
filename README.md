@@ -21,14 +21,14 @@ also provide a fix with a pull request that is most warmly welcome.
 
 The macro `assert` in C++ is a relict from the C days. I use a small program as
 an example: calculate the length of a zero-terminated `char` array. Here is my
-first implementation in the file `strlen.cpp`:
+first implementation in the file `slen.cpp`:
 
 ```c++
 #include <cassert>
 
-#include "strlen.h"
+#include "slen.h"
 
-[[nodiscard]] size_t strlen(const char* str) {
+[[nodiscard]] size_t slen(const char* str) {
 	assert(str);
 	auto cur { str };
 	for (; *cur; ++cur) { }
@@ -38,44 +38,44 @@ first implementation in the file `strlen.cpp`:
 
 Many thanks to [Zirafinu](https://github.com/Zirafinu) for the optimization of
 this function. My first version had an additional counter and no pointer
-arithmetics. I also wrote a small test program `t_strlen.cpp`:
+arithmetics. I also wrote a small test program `t_slen.cpp`:
 
 ```c++
 #include <cassert>
 
-#include "strlen.h"
+#include "slen.h"
 
 int main() {
-	assert(strlen("") == 0);
-	assert(strlen("abc") == 3);
-	assert(strlen("a\0b") == 1);
+	assert(slen("") == 0);
+	assert(slen("abc") == 3);
+	assert(slen("a\0b") == 1);
 }
 ```
 
 To compile the function and the test program I also wrote the following header
-file `strlen.h`:
+file `slen.h`:
 
 ```c++
 #pragma once
 
 #include <cstddef>
 
-[[nodiscard]] size_t strlen(const char* str);
+[[nodiscard]] size_t slen(const char* str);
 ```
 
 In this program I used `assert` for two different tasks:
 
-1. I check in the function `strlen`, if the passed pointer is valid (not
+1. I check in the function `slen`, if the passed pointer is valid (not
    `nullptr`) and
 
-2. I use `assert` in `t_strlen.cpp` for simple unit-tests.
+2. I use `assert` in `t_slen.cpp` for simple unit-tests.
 
 Both usages I found multiple times in other programs. It is not a hypothetical
 problem!
 
 But especially the first usage is problematic: What happens, if I build a
 release version? In that case, calls to `assert` will be deleted. The macro
-will expand to nothing. If I call `strlen` with a `nullptr` all hell can break
+will expand to nothing. If I call `slen` with a `nullptr` all hell can break
 loose. But I can't reproduce the problems in my development environment with my
 development builds.
 
@@ -87,11 +87,12 @@ degraded.
 I should use the release version for testing. But then I no longer have the
 `assert` function. You *can* enable it nonetheless, but then you left the
 street of standard C++. One solution can be an additional test. I can adjust
-`strlen.cpp` in the following way:
+`slen.cpp` in the following way:
 
 ```c++
 // ...
-[[nodiscard]] size_t strlen(const char* str) {
+[[nodiscard]] size_t slen(const char* str) {
+	// ...
 	assert(str);
 	if (! str) { return 0; }
 // ...
@@ -117,17 +118,17 @@ repository.
 The current state of the source code is better, but far from acceptable. At
 least, nothing bad happens, when the function is called with `nullptr`. But no
 error state is returned.  I can argue, that `0` is the perfectly correct answer
-for calling `strlen` with `nullptr`. But `assert` means something different.
+for calling `slen` with `nullptr`. But `assert` means something different.
 
-With `assert` I state explicitly, that it is an error to call `strlen` with
+With `assert` I state explicitly, that it is an error to call `slen` with
 `nullptr`. Maybe an exception is the more appropriate way to handle this error
-condition in `strlen.cpp`:
+condition in `slen.cpp`:
 
 ```c++
 #include <cassert>
 #include <stdexcept>
 // ...
-[[nodiscard]] size_t strlen(const char* str) {
+[[nodiscard]] size_t slen(const char* str) {
 	// ...
 	assert(str);
 	if (! str) { throw std::invalid_argument { "must not be nullptr" }; }
@@ -185,7 +186,7 @@ I put all characters that are unique per source file into one string and
 concatenate the line number afterwards. That way, I do not need so much space
 for string constants. But the result is a bit more code.
 
-Now I can use the macro in `strlen.cpp`:
+Now I can use the macro in `slen.cpp`:
 
 ```c++
 #if 0 // don't use assert
@@ -193,9 +194,8 @@ Now I can use the macro in `strlen.cpp`:
 
 #endif // don't use assert
 #include "solid/require.h"
-#include "strlen.h"
-
-[[nodiscard]] size_t strlen(const char* str) {
+// ...
+[[nodiscard]] size_t slen(const char* str) {
 	#if 0 // don't use assert and exception
 	// ...
 	#endif // don't return default value
@@ -204,7 +204,7 @@ Now I can use the macro in `strlen.cpp`:
 // ...
 ```
 
-A similar adaption I perform in `t_strlen.cpp`:
+A similar adaption I perform in `t_slen.cpp`:
 
 ```c++
 #if 0
@@ -216,32 +216,32 @@ A similar adaption I perform in `t_strlen.cpp`:
 int main() {
 	#if 0 // use require instead of assert
 	// ...
-	assert(strlen("a\0b") == 1);
+	assert(slen("a\0b") == 1);
 	#endif // use require instead of assert
-	require(strlen("") == 0);
-	require(strlen("abc") == 3);
-	require(strlen("a\0b") == 1);
+	require(slen("") == 0);
+	require(slen("abc") == 3);
+	require(slen("a\0b") == 1);
 // ...
 ```
 
-I can now also test, that `strlen` fails as expected by catching the exception:
+I can now also test, that `slen` fails as expected by catching the exception:
 
 ```c++
 // ...
-#include "strlen.h"
+#include "slen.h"
 
 #include <tuple>
 
-void test_null_strlen() {
+void test_null_slen() {
 	bool got_exception { false };
 	try {
-		std::ignore = strlen(nullptr);
+		std::ignore = slen(nullptr);
 	} catch (const solid::require::Error&) { got_exception = true; }
 	require(got_exception);
 }
 // ...
-	require(strlen("a\0b") == 1);
-	test_null_strlen();
+	require(slen("a\0b") == 1);
+	test_null_slen();
 // ...
 ```
 
@@ -261,16 +261,19 @@ namespace solid::require {
 			) { return what; }
 	};
 
+	// ...
 	class Error: public std::logic_error {
+		// ...
 		public:
+			// ...
 			Error(const std::string& what): 
 				#if 0 // don't initialize without handler
+				// ...
 				std::logic_error { what } { }
 				#endif // don't initialize without handler
 				std::logic_error { handler_(what) } { }
 		private:
 			static Global_Handler handler_;
-	};
 // ...
 ```
 
@@ -310,10 +313,10 @@ I am pretty happy with this code. But there is one more thing …
 
 ## Better Types
 
-I see in the type of the parameter of `strlen` a problem. It would be better,
+I see in the type of the parameter of `slen` a problem. It would be better,
 if I can say, that this type is not allowed to be `nullptr`. Then the compiler
 can check and not allow to call this function in an insecure way. I use the new
-class `String_Literal` in `strlen.cpp` to achieve this. I no longer need the
+class `String_Literal` in `slen.cpp` to achieve this. I no longer need the
 `require` check any more:
 
 ```c++
@@ -325,9 +328,10 @@ class `String_Literal` in `strlen.cpp` to achieve this. I no longer need the
 // ...
 
 #if 0 // don't use raw c string
-[[nodiscard]] size_t strlen(const char* str) {
+// ...
+[[nodiscard]] size_t slen(const char* str) {
 #endif // don't use raw c string
-[[nodiscard]] size_t strlen(const String_Literal& str) {
+[[nodiscard]] size_t slen(const String_Literal& str) {
 	#if 0 // don't use require
 	// ...
 	require(str);
@@ -335,6 +339,7 @@ class `String_Literal` in `strlen.cpp` to achieve this. I no longer need the
 	// ...
 	for (; *cur; ++cur) { }
 	#if 0 // don't use raw pointers
+	// ...
 	return cur - str;
 	#endif // don't use raw pointers
 	return cur.ptr() - str.ptr();
@@ -365,7 +370,7 @@ class String_Literal {
 };
 ```
 
-I have changed the signature of `strlen`. So, I have to adjust it in `strlen.h`
+I have changed the signature of `slen`. So, I have to adjust it in `slen.h`
 also:
 
 ```c++
@@ -375,37 +380,39 @@ also:
 #include "string-literal.h"
 
 #if 0 // don't use raw string
-[[nodiscard]] size_t strlen(const char* str);
+[[nodiscard]] size_t slen(const char* str);
 #endif // don't use raw string
-[[nodiscard]] size_t strlen(const String_Literal& str);
+[[nodiscard]] size_t slen(const String_Literal& str);
+// ...
 ```
 
-And I have to adjust the test-cases in `t_strlen.cpp`:
+And I have to adjust the test-cases in `t_slen.cpp`:
 
 ```c++
 // ...
-void test_null_strlen() {
+void test_null_slen() {
 	// ...
 	try {
 	#if 0 // don't use raw pointer
-		std::ignore = strlen(nullptr);
+		// ...
+		std::ignore = slen(nullptr);
 	#endif // don't use raw pointer
-		std::ignore = strlen(String_Literal { nullptr });
+		std::ignore = slen(String_Literal { nullptr });
 // ...
 int main() {
 	#if 0 // don't use raw strings
 	// ...
-	test_null_strlen();
+	test_null_slen();
 	#endif // don't use raw strings
-	require(strlen(String_Literal { "" }) == 0);
-	require(strlen(String_Literal { "abc" }) == 3);
-	require(strlen(String_Literal { "a\0b" }) == 1);
-	test_null_strlen();
+	require(slen(String_Literal { "" }) == 0);
+	require(slen(String_Literal { "abc" }) == 3);
+	require(slen(String_Literal { "a\0b" }) == 1);
+	test_null_slen();
 // ...
 ```
 
 But I still need the `require` function. But now in the construction of the
-`String_Literal`. That makes the code of the `strlen` function clearer: I have
+`String_Literal`. That makes the code of the `slen` function clearer: I have
 moved the test out of the function and declared with the new parameter type the
 constraints I impose on it.
 

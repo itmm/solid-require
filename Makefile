@@ -2,9 +2,9 @@
 
 CXXFLAGS += -O3 -Wall -Wextra -Wpedantic -Werror -std=c++20 -I./include
 
-T_APP = t_strlen
-T_SOURCES = strlen.cpp $(T_APP).cpp
-T_HEADER = strlen.h string-literal.h
+T_APP = t_slen
+T_SOURCES = slen.cpp $(T_APP).cpp
+T_HEADER = slen.h string-literal.h
 
 LIB = librequire.a
 L_SOURCES = solid/require.cpp
@@ -32,7 +32,7 @@ tests: $(T_APP)
 
 $(T_APP): $(T_SOURCES) $(T_HEADER) $(T_HEADER) $(LIB)
 	@echo building $@
-	@$(CXX) $(CXXFLAGS) $(T_SOURCES) $(LIB) -o $@
+	$(CXX) $(CXXFLAGS) $(T_SOURCES) $(LIB) -o $@
 
 $(LIB): $(L_OBJECTS)
 	@echo building $@
@@ -40,6 +40,6 @@ $(LIB): $(L_OBJECTS)
 	
 clean:
 	@echo "remove temporaries"
-	@rm -f $(T_APP) $(MDP_RUN)
+	@rm -f $(T_APP) $(MDP_RUN) $(LIB)
 	@[ -x "$$(command -v mdp)" ] && rm -f $(T_SOURCES) $(L_SOURCES) \
 		$(T_HEADER) $(L_HEADER) $(L_OBJECTS)
